@@ -59,17 +59,7 @@ const Login = () => {
 
         console.log(token);
       }
-
-      // // Assuming the response contains a token and user data
-      // if (response.data.token) {
-      //   // You might want to store the token in localStorage/sessionStorage
-      //   localStorage.setItem("authToken", response.data.token);
-
-      //   // Dispatch the action to set the user as authenticated
-      //   dispatch(setAuth(true));
-
-      //   onClose(); // Close the modal
-      // }
+      onLoginClose();
     } catch (error) {
       console.error(
         "Login failed:",
@@ -87,19 +77,20 @@ const Login = () => {
       );
       console.log(response);
 
-      // // Assuming the response contains a token and user data
-      // if (response.data.token) {
-      //   // You might want to store the token in localStorage/sessionStorage
-      //   localStorage.setItem("authToken", response.data.token);
+      if (response.data) {
+        dispatch(setUser(response.data));
+      }
+      console.log(response);
+      if (response.data.tokens.access.token) {
+        dispatch(setAuth(true));
+        dispatch(setToken(response.data.tokens.access.token));
 
-      //   // Dispatch the action to set the user as authenticated
-      //   dispatch(setAuth(true));
-
-      //   onClose(); // Close the modal
-      // }
+        console.log(token);
+      }
+      onRegisterClose();
     } catch (error) {
       console.error(
-        "Login failed:",
+        "Register failed:",
         error.response ? error.response.data : error.message
       );
       // Handle login failure (show error message, etc.)
