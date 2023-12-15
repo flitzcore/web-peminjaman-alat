@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Field, Form, Formik } from "formik";
 import {
   Modal,
   ModalOverlay,
@@ -8,110 +9,205 @@ import {
   ModalBody,
   ModalCloseButton,
   Button,
+  Box,
 } from "@chakra-ui/react";
 import { useDisclosure, useBoolean } from "@chakra-ui/react";
-import {
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  FormHelperText,
-  Input,
-} from "@chakra-ui/react";
-
+import * as Yup from "yup";
+import { InputControl, SubmitButton } from "formik-chakra-ui";
 import { useSelector, useDispatch } from "react-redux";
-import { setAuth } from "../context/AuthSlice";
 
+import axios from "axios";
+import { setUser } from "../context/UserSlice";
+import { setToken } from "../context/TokenSlice";
+import { setAuth } from "../context/AuthSlice";
 const Login = () => {
   const isAuthenticated = useSelector((state) => state.isAuthenticated.value);
+  const token = useSelector((state) => state.jwtToken.value);
   const dispatch = useDispatch();
-  const [flag, setFlag] = useBoolean(isAuthenticated);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const handleLogin = () => {
-    dispatch(setAuth(true));
-    console.log("login");
-    onClose(); // This will close the modal
+  const {
+    isOpen: isLoginOpen,
+    onOpen: onLoginOpen,
+    onClose: onLoginClose,
+  } = useDisclosure();
+  const {
+    isOpen: isRegisterOpen,
+    onOpen: onRegisterOpen,
+    onClose: onRegisterClose,
+  } = useDisclosure();
+  const openRegisterModal = () => {
+    onLoginClose();
+    onRegisterOpen();
   };
-  const handleRegister = () => {
-    dispatch(setAuth(true));
-    console.log("register");
-    onClose(); // This will close the modal
+  const openLoginModal = () => {
+    onRegisterClose();
+    onLoginOpen();
   };
+  const handleLogin = async (values) => {
+    try {
+      // Replace with your API endpoint and adjust payload as needed
+      const response = await axios.post(
+        "http://127.0.0.1:3000/v1/auth/login",
+        values
+      );
+      if (response.data) {
+        dispatch(setUser(response.data));
+      }
+      console.log(response);
+      if (response.data.tokens.access.token) {
+        dispatch(setAuth(true));
+        dispatch(setToken(response.data.tokens.access.token));
+
+        console.log(token);
+      }
+
+      // // Assuming the response contains a token and user data
+      // if (response.data.token) {
+      //   // You might want to store the token in localStorage/sessionStorage
+      //   localStorage.setItem("authToken", response.data.token);
+
+      //   // Dispatch the action to set the user as authenticated
+      //   dispatch(setAuth(true));
+
+      //   onClose(); // Close the modal
+      // }
+    } catch (error) {
+      console.error(
+        "Login failed:",
+        error.response ? error.response.data : error.message
+      );
+      // Handle login failure (show error message, etc.)
+    }
+  };
+  const handleRegister = async (values) => {
+    try {
+      // Replace with your API endpoint and adjust payload as needed
+      const response = await axios.post(
+        "http://127.0.0.1:3000/v1/auth/register",
+        values
+      );
+      console.log(response);
+
+      // // Assuming the response contains a token and user data
+      // if (response.data.token) {
+      //   // You might want to store the token in localStorage/sessionStorage
+      //   localStorage.setItem("authToken", response.data.token);
+
+      //   // Dispatch the action to set the user as authenticated
+      //   dispatch(setAuth(true));
+
+      //   onClose(); // Close the modal
+      // }
+    } catch (error) {
+      console.error(
+        "Login failed:",
+        error.response ? error.response.data : error.message
+      );
+      // Handle login failure (show error message, etc.)
+    }
+  };
+  const loginInitialValues = {
+    email: "",
+    password: "",
+  };
+  const loginValidationSchema = Yup.object({
+    email: Yup.string().required(),
+    password: Yup.string().required(),
+  });
+  const registerInitialValues = {
+    name: "",
+    email: "",
+    password: "",
+  };
+  const registerValidationSchema = Yup.object({
+    name: Yup.string().required(),
+    email: Yup.string().required(),
+    password: Yup.string().required(),
+  });
   return (
     <>
-      <Button variant="outline" colorScheme="white" onClick={onOpen}>
+      <Button variant="outline" colorScheme="white" onClick={onLoginOpen}>
         Masuk
       </Button>
-      <Modal isOpen={isOpen} onClose={onClose}>
+      {/* login Modal */}
+      <Modal isOpen={isLoginOpen} onClose={onLoginClose}>
         <ModalOverlay />
-        {flag ? (
-          <ModalContent>
-            <ModalHeader fontSize={"3xl"}>Masuk</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              Masuk untuk mengakses peminjaman barang
-              <FormControl>
-                <FormLabel>Email atau Username</FormLabel>
-                <Input type="email" />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Kata Sandi</FormLabel>
-                <Input type="password" />
-              </FormControl>
-              Belum punya akun?{" "}
-              <Button
-                onClick={setFlag.toggle}
-                variant={"link"}
-                colorScheme="blue"
-              >
-                Daftar disini
-              </Button>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button colorScheme="facebook" mx={"auto"} onClick={handleLogin}>
-                Masuk
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        ) : (
-          <ModalContent>
-            <ModalHeader fontSize={"3xl"}>Daftar</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              Buat akun Anda sebelum melanjutkan
-              <FormControl>
-                <FormLabel>Email atau Username</FormLabel>
-                <Input type="email" />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Kata Sandi</FormLabel>
-                <Input type="password" />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Konfirmasi kata Sandi</FormLabel>
-                <Input type="password" />
-              </FormControl>
-              Sudah punya akun?{" "}
-              <Button
-                onClick={setFlag.toggle}
-                variant={"link"}
-                colorScheme="blue"
-              >
-                Masuk
-              </Button>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                colorScheme="facebook"
-                mx={"auto"}
-                onClick={handleRegister}
-              >
-                Buat Akun
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        )}
+        <ModalContent>
+          <Formik
+            initialValues={loginInitialValues}
+            onSubmit={handleLogin}
+            validationSchema={loginValidationSchema}
+          >
+            {({ handleSubmit, values, errors }) => (
+              <Box as="form" onSubmit={handleSubmit}>
+                <ModalHeader fontSize={"3xl"}>Masuk</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  Masuk untuk mengakses peminjaman barang
+                  <InputControl name="email" label="Email" />
+                  <InputControl
+                    inputProps={{ type: "password" }}
+                    name="password"
+                    label="Kata Sandi"
+                  />
+                  Belum punya akun?{" "}
+                  <Button
+                    onClick={openRegisterModal}
+                    variant={"link"}
+                    colorScheme="blue"
+                  >
+                    Daftar disini
+                  </Button>
+                </ModalBody>
+                <ModalFooter>
+                  <SubmitButton colorScheme="facebook" mx={"auto"}>
+                    Masuk
+                  </SubmitButton>
+                </ModalFooter>
+              </Box>
+            )}
+          </Formik>
+        </ModalContent>
+      </Modal>
+      {/* register Modal */}
+      <Modal isOpen={isRegisterOpen} onClose={onRegisterClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <Formik
+            initialValues={registerInitialValues}
+            onSubmit={handleRegister}
+            validationSchema={registerValidationSchema}
+          >
+            {({ handleSubmit, values, errors }) => (
+              <Box as="form" onSubmit={handleSubmit}>
+                <ModalHeader fontSize={"3xl"}>Daftar</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  Buat akun Anda sebelum melanjutkan
+                  <InputControl name="name" label="Nama" />
+                  <InputControl name="email" label="Email" />
+                  <InputControl
+                    inputProps={{ type: "password" }}
+                    name="password"
+                    label="Kata Sandi"
+                  />
+                  Sudah punya akun?{" "}
+                  <Button
+                    onClick={openLoginModal}
+                    variant={"link"}
+                    colorScheme="blue"
+                  >
+                    Masuk
+                  </Button>
+                </ModalBody>
+                <ModalFooter>
+                  <SubmitButton colorScheme="facebook" mx={"auto"}>
+                    Daftar
+                  </SubmitButton>
+                </ModalFooter>
+              </Box>
+            )}
+          </Formik>
+        </ModalContent>
       </Modal>
     </>
   );

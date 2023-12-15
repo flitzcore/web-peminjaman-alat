@@ -18,7 +18,7 @@ const Layout = () => {
               <Link to="/">Beranda</Link>
             </div>
             <div className="hover:bg-gray-700 px-3 py-2 rounded">
-              <Link to="/contact">Kontak</Link>
+              <Link to="/profile">Profil</Link>
             </div>
 
             <Login />
