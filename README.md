@@ -10,9 +10,10 @@ Per Kelompok
 
 Tech State
 
-- Database : SQL
+- Database : MongoJs
 - FrontEnd : React
-- BackEnd : JavaScript
+- BackEnd : Express
+  
 
 - Container
 
